@@ -19,6 +19,7 @@ int transform(int x) { return (x + 32768) * 599 / 65535; }
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "Usage: display_ilda FILE\n");
+    fprintf(stderr, "  Press space bar to pause and Q to quit\n");
     exit(1);
   }
   int f = open(argv[1], 0);
@@ -38,6 +39,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+  int pause = 0;
   for (;;) {
     ilda_state_t ilda;
     ilda_init(&ilda, read_file, (void *)(long)f);
@@ -45,8 +47,15 @@ int main(int argc, char *argv[]) {
     for (;;) {
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT)
+        if (event.type == SDL_QUIT ||
+            event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q)
           goto bye;
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
+          pause ^= 1;
+      }
+      if (pause) {
+        SDL_Delay(40);
+        continue;
       }
       const ilda_header_t *header = ilda_read_next_header(&ilda);
       if (header == NULL) {
