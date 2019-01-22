@@ -1,3 +1,4 @@
 *.o
 test_ilda
 display_ilda
+max_records
