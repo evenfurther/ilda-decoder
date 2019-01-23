@@ -107,8 +107,8 @@ const ilda_header_t *ilda_read_next_header(ilda_state_t *ilda) {
     ilda->error = "invalid format code";
     return NULL;
   }
-  ilda->current_header.format_code = format_code;
   memset(&ilda->current_header, 0, sizeof ilda->current_header);
+  ilda->current_header.format_code = format_code;
   strncpy(ilda->current_header.frame_or_color_palette_name, (char *)&buffer[8], 8);
   strncpy(ilda->current_header.company_name, (char *)&buffer[16], 8);
   const uint16_t number_of_records = (buffer[24] << 8) | buffer[25];
