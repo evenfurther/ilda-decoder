@@ -37,12 +37,17 @@ typedef struct {
   ilda_color_t palette[256];
   ilda_header_t current_header;
   const char *error;
+  uint8_t strict_mode;
 } ilda_state_t;
 
-// Initialize a ILDA state from a read function and an opaque value.
+// Initialize a ILDA state from a callback read function and an opaque value.
+// The opaque value will be given as the callback first parameter.
+// The strict mode enforces the ILDA standard when reading a file, while
+// the non-strict mode is more lax with the input.
 void ilda_init(ilda_state_t *ilda,
                ssize_t (*read)(void *opaque, void *buffer, size_t len),
-               void *opaque);
+               void *opaque,
+               int strict_mode);
 
 // Read the next header. Return a pointer to the read-only
 // header, or NULL if there was an error. In case of error,

@@ -10,9 +10,10 @@ static ssize_t read_file(void *opaque, void *buffer, size_t len) {
   return read((int) (long) opaque, buffer, len);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, const char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "Usage: test_ilda FILE\n");
+    fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     exit(1);
   }
   int f = open(argv[1], 0);
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   ilda_state_t ilda;
-  ilda_init(&ilda, read_file, (void *) (long) f);
+  ilda_init(&ilda, read_file, (void *) (long) f, getenv("ILDA_STRICT_MODE") != NULL);
   for (;;) {
     const ilda_header_t *header = ilda_read_next_header(&ilda);
     if (header == NULL) {

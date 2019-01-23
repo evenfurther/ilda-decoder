@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "Usage: display_ilda FILE\n");
     fprintf(stderr, "  Press space bar to pause and Q to quit\n");
+    fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     exit(1);
   }
   int f = open(argv[1], 0);
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
   int pause = 0;
   for (;;) {
     ilda_state_t ilda;
-    ilda_init(&ilda, read_file, (void *)(long)f);
+    ilda_init(&ilda, read_file, (void *) (long) f, getenv("ILDA_STRICT_MODE") != NULL);
     ilda_pos_t last_point = {0, 0, 0};
     for (;;) {
       SDL_Event event;

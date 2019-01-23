@@ -69,10 +69,12 @@ static const ilda_color_t default_color_palette[64] = {
   {255,  32,  32}
 };
 
-void ilda_init(ilda_state_t *ilda, ssize_t (*read)(void *, void *, size_t), void *opaque) {
+void ilda_init(ilda_state_t *ilda, ssize_t (*read)(void *, void *, size_t), void *opaque,
+    int strict_mode) {
   memset(ilda, 0, sizeof *ilda);
   ilda->provider.read = read;
   ilda->provider.opaque = opaque;
+  ilda->strict_mode = strict_mode != 0;
   memcpy(ilda->palette, default_color_palette, sizeof default_color_palette);
 }
 
@@ -112,24 +114,30 @@ const ilda_header_t *ilda_read_next_header(ilda_state_t *ilda) {
   strncpy(ilda->current_header.frame_or_color_palette_name, (char *)&buffer[8], 8);
   strncpy(ilda->current_header.company_name, (char *)&buffer[16], 8);
   const uint16_t number_of_records = (buffer[24] << 8) | buffer[25];
-  if (format_code == 2 && (number_of_records < 2 || number_of_records > 256)) {
+  if (format_code == 2 && number_of_records > 256) {
     ilda->error = "too many records for palette";
     return NULL;
   }
   ilda->current_header.number_of_records = number_of_records;
   ilda->current_header.frame_or_color_palette_number = (buffer[26] << 8) | buffer[27];
-  if (ilda->current_header.frame_or_color_palette_number == 65535) {
-    ilda->error = "invalid frame or color palette number";
-    return NULL;
-  }
   ilda->current_header.total_frames = (buffer[28] << 8) | buffer[29];
-  if (format_code == 2 && ilda->current_header.total_frames) {
-    ilda->error = "number of frames in color palette should be 0";
-    return NULL;
-  }
-  if (ilda->current_header.total_frames == 0) {
-    ilda->error = "invalid number of frames in sequence";
-    return NULL;
+  if (ilda->strict_mode) {
+    if (format_code == 2 && number_of_records < 2) {
+      ilda->error = "too few records for palette";
+      return NULL;
+    }
+    if (ilda->current_header.frame_or_color_palette_number == 65535) {
+      ilda->error = "invalid frame or color palette number";
+      return NULL;
+    }
+    if (format_code == 2 && ilda->current_header.total_frames) {
+      ilda->error = "number of frames in color palette should be 0";
+      return NULL;
+    }
+    if (ilda->current_header.total_frames == 0) {
+      ilda->error = "invalid number of frames in sequence";
+      return NULL;
+    }
   }
   ilda->current_header.projector_number = buffer[30];
   return &ilda->current_header;
