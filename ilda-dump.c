@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "ilda_decoder.h"
+#include "ilda-decoder.h"
 
 static ssize_t read_file(void *opaque, void *buffer, size_t len) {
   return read((int) (long) opaque, buffer, len);
@@ -12,7 +12,7 @@ static ssize_t read_file(void *opaque, void *buffer, size_t len) {
 
 int main(int argc, const char *argv[]) {
   if (argc != 2) {
-    fprintf(stderr, "Usage: test_ilda FILE\n");
+    fprintf(stderr, "Usage: ilda-dump FILE\n");
     fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     exit(1);
   }

@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "ilda_decoder.h"
+#include "ilda-decoder.h"
 
 static const ilda_color_t default_color_palette[64] = {
   {255,   0,   0},

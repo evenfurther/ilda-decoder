@@ -6,7 +6,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "ilda_decoder.h"
+#include "ilda-decoder.h"
 
 static ssize_t read_file(void *opaque, void *buffer, size_t len) {
   return read((int)(long)opaque, buffer, len);
@@ -18,7 +18,7 @@ int transform(int x) { return (x + 32768) * 599 / 65535; }
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    fprintf(stderr, "Usage: display_ilda FILE\n");
+    fprintf(stderr, "Usage: ilda-display FILE\n");
     fprintf(stderr, "  Press space bar to pause and Q to quit\n");
     fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     exit(1);
