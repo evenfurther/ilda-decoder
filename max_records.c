@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
   }
   ilda_state_t ilda;
   ilda_init(&ilda, read_file, (void *) (long) f, getenv("ILDA_STRICT_MODE") != NULL);
-  size_t max_records = 0;
+  uint16_t max_records = 0;
   for (;;) {
     const ilda_header_t *header = ilda_read_next_header(&ilda);
     if (header == NULL) {
@@ -48,5 +48,5 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  printf("Maximum number of records in a frame: %d\n", max_records);
+  printf("Maximum number of records in a frame: %u\n", max_records);
 }

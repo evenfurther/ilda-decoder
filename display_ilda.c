@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT ||
-            event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q)
+            (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q))
           goto bye;
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
           pause ^= 1;
