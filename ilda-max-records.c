@@ -1,19 +1,21 @@
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "ilda-decoder.h"
 
 static ssize_t read_file(void *opaque, void *buffer, size_t len) {
-  return read((int) (long) opaque, buffer, len);
+  return read((int)(long)opaque, buffer, len);
 }
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "Usage: ilda-max-records FILE\n");
-    fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
+    fprintf(
+        stderr,
+        "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     exit(1);
   }
   int f = open(argv[1], 0);
@@ -22,7 +24,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   ilda_state_t ilda;
-  ilda_init(&ilda, read_file, (void *) (long) f, getenv("ILDA_STRICT_MODE") != NULL);
+  ilda_init(&ilda, read_file, (void *)(long)f,
+            getenv("ILDA_STRICT_MODE") != NULL);
   uint16_t max_records = 0;
   for (;;) {
     const ilda_header_t *header = ilda_read_next_header(&ilda);

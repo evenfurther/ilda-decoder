@@ -20,7 +20,9 @@ int main(int argc, char *argv[]) {
   if (argc != 2) {
     fprintf(stderr, "Usage: ilda-display FILE\n");
     fprintf(stderr, "  Press space bar to pause and Q to quit\n");
-    fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
+    fprintf(
+        stderr,
+        "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     exit(1);
   }
   int f = open(argv[1], 0);
@@ -43,7 +45,8 @@ int main(int argc, char *argv[]) {
   int pause = 0;
   for (;;) {
     ilda_state_t ilda;
-    ilda_init(&ilda, read_file, (void *) (long) f, getenv("ILDA_STRICT_MODE") != NULL);
+    ilda_init(&ilda, read_file, (void *)(long)f,
+              getenv("ILDA_STRICT_MODE") != NULL);
     ilda_pos_t last_point = {0, 0, 0};
     for (;;) {
       SDL_Event event;
@@ -83,10 +86,11 @@ int main(int argc, char *argv[]) {
           const ilda_point_t *point = &buffer[i];
           if (!ilda_is_blanking(point->status_code)) {
             SDL_SetRenderDrawColor(renderer, point->color.r, point->color.g,
-                point->color.b, SDL_ALPHA_OPAQUE);
+                                   point->color.b, SDL_ALPHA_OPAQUE);
             SDL_RenderDrawLine(renderer, transform(last_point.x),
-                DIM - transform(last_point.y), transform(point->pos.x),
-                DIM - transform(point->pos.y));
+                               DIM - transform(last_point.y),
+                               transform(point->pos.x),
+                               DIM - transform(point->pos.y));
           }
           memcpy(&last_point, point, sizeof last_point);
         }

@@ -1,19 +1,21 @@
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "ilda-decoder.h"
 
 static ssize_t read_file(void *opaque, void *buffer, size_t len) {
-  return read((int) (long) opaque, buffer, len);
+  return read((int)(long)opaque, buffer, len);
 }
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
     fprintf(stderr, "Usage: ilda-check-liveness FILE pps\n");
-    fprintf(stderr, "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
+    fprintf(
+        stderr,
+        "  Use strict mode if ILDA_STRICT_MODE environment variable exists\n");
     fprintf(stderr, "  You can use the `k' suffix such as 30k\n");
     exit(1);
   }
@@ -33,7 +35,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   ilda_state_t ilda;
-  ilda_init(&ilda, read_file, (void *) (long) f, getenv("ILDA_STRICT_MODE") != NULL);
+  ilda_init(&ilda, read_file, (void *)(long)f,
+            getenv("ILDA_STRICT_MODE") != NULL);
   ilda_pos_t current_position = {0, 0, 0};
   size_t current_position_start = 0;
   size_t max_length = 0;
@@ -75,6 +78,6 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  printf("Longest non-moving sequence: %lu points (%.1f ms)\n",
-      max_length, max_length * 1000.0 / pps);
+  printf("Longest non-moving sequence: %lu points (%.1f ms)\n", max_length,
+         max_length * 1000.0 / pps);
 }

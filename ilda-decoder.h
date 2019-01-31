@@ -4,9 +4,13 @@
 #include <stdint.h>
 #include <unistd.h>
 
-typedef struct { int16_t x, y, z; } ilda_pos_t;
+typedef struct {
+  int16_t x, y, z;
+} ilda_pos_t;
 
-typedef struct { uint8_t r, g, b; } ilda_color_t;
+typedef struct {
+  uint8_t r, g, b;
+} ilda_color_t;
 
 typedef struct {
   // read(opaque, buffer, length) returns the number of bytes
@@ -46,8 +50,7 @@ typedef struct {
 // the non-strict mode is more lax with the input.
 void ilda_init(ilda_state_t *ilda,
                ssize_t (*read)(void *opaque, void *buffer, size_t len),
-               void *opaque,
-               int strict_mode);
+               void *opaque, int strict_mode);
 
 // Read the next header. Return a pointer to the read-only
 // header, or NULL if there was an error. In case of error,
