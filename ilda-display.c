@@ -8,8 +8,19 @@
 
 #include "ilda-decoder.h"
 
+#define STRICT_MODE 0x8000
+
 static ssize_t read_file(void *opaque, void *buffer, size_t len) {
-  return read((int)(long)opaque, buffer, len);
+  ssize_t r = read((int)(long)opaque & ~STRICT_MODE, buffer, len);
+  if (r == 0) {
+    if ((int)(long)opaque & STRICT_MODE) {
+      fprintf(stderr, "end of file encountered before ILDA end marker\n");
+      exit(1);
+    }
+    lseek((int)(long)opaque, 0, SEEK_SET);
+    r = read((int)(long)opaque, buffer, len);
+  }
+  return r;
 }
 
 #define DIM 600
@@ -43,62 +54,59 @@ int main(int argc, char *argv[]) {
   }
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
   int pause = 0;
+  ilda_state_t ilda;
+  int strict_mode = getenv("ILDA_STRICT_MODE") == NULL ? 0 : STRICT_MODE;
+  ilda_init(&ilda, read_file, (void *)((long)f | strict_mode), strict_mode);
+  ilda_pos_t last_point = {0, 0, 0};
   for (;;) {
-    ilda_state_t ilda;
-    ilda_init(&ilda, read_file, (void *)(long)f,
-              getenv("ILDA_STRICT_MODE") != NULL);
-    ilda_pos_t last_point = {0, 0, 0};
-    for (;;) {
-      SDL_Event event;
-      while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT ||
-            (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q))
-          goto bye;
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
-          pause ^= 1;
-      }
-      if (pause) {
-        SDL_Delay(40);
-        continue;
-      }
-      const ilda_header_t *header = ilda_read_next_header(&ilda);
-      if (header == NULL) {
-        fprintf(stderr, "error when reading ILDA file: %s\n", ilda.error);
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_QUIT ||
+          (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q))
+        goto bye;
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
+        pause ^= 1;
+    }
+    if (pause) {
+      SDL_Delay(40);
+      continue;
+    }
+    const ilda_header_t *header = ilda_read_next_header(&ilda);
+    if (header == NULL) {
+      fprintf(stderr, "error when reading ILDA file: %s\n", ilda.error);
+      exit(1);
+    }
+    if (ilda_is_end_of_file(header)) {
+      lseek(f, 0, SEEK_SET);
+      continue;
+    }
+    if (ilda_is_palette(header)) {
+      if (ilda_read_palette(&ilda)) {
+        fprintf(stderr, "error when reading palette: %s\n", ilda.error);
         exit(1);
       }
-      if (ilda_is_end_of_file(header)) {
-        break;
+    } else {
+      static ilda_point_t buffer[65536];
+      if (ilda_read_records(&ilda, buffer, sizeof buffer)) {
+        fprintf(stderr, "error when reading records: %s\n", ilda.error);
+        exit(1);
       }
-      if (ilda_is_palette(header)) {
-        if (ilda_read_palette(&ilda)) {
-          fprintf(stderr, "error when reading palette: %s\n", ilda.error);
-          exit(1);
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+      SDL_RenderClear(renderer);
+      for (size_t i = 0; i < header->number_of_records; i++) {
+        const ilda_point_t *point = &buffer[i];
+        if (!ilda_is_blanking(point->status_code)) {
+          SDL_SetRenderDrawColor(renderer, point->color.r, point->color.g,
+                                 point->color.b, SDL_ALPHA_OPAQUE);
+          SDL_RenderDrawLine(
+              renderer, transform(last_point.x), DIM - transform(last_point.y),
+              transform(point->pos.x), DIM - transform(point->pos.y));
         }
-      } else {
-        static ilda_point_t buffer[65536];
-        if (ilda_read_records(&ilda, buffer, sizeof buffer)) {
-          fprintf(stderr, "error when reading records: %s\n", ilda.error);
-          exit(1);
-        }
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(renderer);
-        for (size_t i = 0; i < header->number_of_records; i++) {
-          const ilda_point_t *point = &buffer[i];
-          if (!ilda_is_blanking(point->status_code)) {
-            SDL_SetRenderDrawColor(renderer, point->color.r, point->color.g,
-                                   point->color.b, SDL_ALPHA_OPAQUE);
-            SDL_RenderDrawLine(renderer, transform(last_point.x),
-                               DIM - transform(last_point.y),
-                               transform(point->pos.x),
-                               DIM - transform(point->pos.y));
-          }
-          memcpy(&last_point, point, sizeof last_point);
-        }
-        SDL_RenderPresent(renderer);
-        SDL_Delay(40);
+        memcpy(&last_point, point, sizeof last_point);
       }
+      SDL_RenderPresent(renderer);
+      SDL_Delay(40);
     }
-    lseek(f, 0, SEEK_SET);
   }
 
 bye:
