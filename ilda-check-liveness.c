@@ -62,10 +62,10 @@ int main(int argc, char *argv[]) {
         exit(1);
       }
       for (uint16_t i = 0; i < header->number_of_records; i++) {
-        if (!ilda_is_blanking(buffer[i].status_code) &&
-            (buffer[i].pos.x != current_position.x ||
-             buffer[i].pos.y != current_position.y ||
-             buffer[i].pos.z != current_position.z)) {
+        if (ilda_is_blanking(buffer[i].status_code) ||
+            buffer[i].pos.x != current_position.x ||
+            buffer[i].pos.y != current_position.y ||
+            buffer[i].pos.z != current_position.z) {
           size_t length = current_index - current_position_start;
           if (length > max_length)
             max_length = length;
