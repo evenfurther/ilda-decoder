@@ -64,9 +64,9 @@ const ilda_header_t *ilda_read_next_header(ilda_state_t *ilda) {
   }
   memset(&ilda->current_header, 0, sizeof ilda->current_header);
   ilda->current_header.format_code = format_code;
-  strncpy(ilda->current_header.frame_or_color_palette_name, (char *)&buffer[8],
-          8);
-  strncpy(ilda->current_header.company_name, (char *)&buffer[16], 8);
+  memcpy(ilda->current_header.frame_or_color_palette_name, (char *)&buffer[8],
+         8);
+  memcpy(ilda->current_header.company_name, (char *)&buffer[16], 8);
   const uint16_t number_of_records = (buffer[24] << 8) | buffer[25];
   if (format_code == 2 && number_of_records > 256) {
     ilda->error = "too many records for palette";
