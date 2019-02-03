@@ -1,6 +1,11 @@
 ILDA decoder
 ============
 
+[ILDA IDTF (image data transfer format)](https://ilda.com/resources/StandardsDocs/ILDA_IDTF14_rev011.pdf)
+is the de-factor standard for describing laser shows. It has been written by the
+[International Laser Display Association](https://ilda.comà) and is available
+from their [ILDA Technical Standards](http://www.ilda.com/technical.htm) page.
+
 This library implements a pull-mode ILDA decoder which does not do any dynamic allocation
 and is suitable for embedded systems.
 
@@ -11,7 +16,7 @@ This library does not depend on anything by itself (just add the `ilda-decoder.h
 `ilda-decoder.c` files in your project).
 
 However, if you want to build the utility programs, you will need a recent
-[meson](https://mesonbuild.com), and the [SDL2](https://www.libsdl.org/)
+[meson](https://mesonbuild.com), as well as the [SDL2](https://www.libsdl.org/)
 library if you want to build the `ilda-display` renderer.
 
 License
