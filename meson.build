@@ -37,3 +37,5 @@ ilda_max_records = executable('ilda-max-records', 'ilda-max-records.c',
 ilda_check_liveness = executable('ilda-check-liveness', 'ilda-check-liveness.c',
   link_with : ilda_decoder_lib,
   install : true)
+
+subdir('tests')

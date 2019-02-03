@@ -15,6 +15,7 @@ addons:
     packages:
       - ninja-build
       - libsdl2-dev
+      - valgrind
 
 before_script:
   pip install meson
@@ -22,5 +23,5 @@ before_script:
 script:
   - mkdir _build
   - cd _build
-  - meson ..
-  - ninja test
+  - meson setup ..
+  - meson test --wrapper=valgrind
