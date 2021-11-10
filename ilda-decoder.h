@@ -73,13 +73,9 @@ int ilda_read_palette(ilda_state_t *ilda);
 int ilda_read_records(ilda_state_t *ilda, ilda_point_t *points, size_t len);
 
 // Return 1 if the status represents blanking (laser off), 0 otherwise.
-static inline int ilda_is_blanking(uint8_t status) {
-  return (status & 0x40) != 0;
-}
+int ilda_is_blanking(uint8_t status);
 
 // Return 1 if the status represents the last point of the image, 0 otherwise.
-static inline int ilda_is_last_point(uint8_t status) {
-  return (status & 0x80) != 0;
-}
+int ilda_is_last_point(uint8_t status);
 
 #endif // ILDA_DECODER_H
