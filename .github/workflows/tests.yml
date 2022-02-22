@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - staging
+      - trying
+
+name: Continuous integration
+
+jobs:
+  test:
+    name: Test suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+      - run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential meson libsdl2-dev valgrind ${{ matrix.compiler }}
+          mkdir _build
+          cd _build
+          CC=${{ matrix.compiler }} CFLAGS="-g -O2 -Wall -Wextra -pedantic" meson setup ..
+          meson test --wrapper=valgrind
+
+  fmt:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          sudo apt-get update
+          sudo apt-get -y install clang-format
+          clang-format --dry-run -Werror *.[ch]
