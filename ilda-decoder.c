@@ -178,3 +178,7 @@ int ilda_read_records(ilda_state_t *ilda, ilda_point_t *points, size_t len) {
 int ilda_is_end_of_file(const ilda_header_t *header) {
   return !ilda_is_palette(header) && header->number_of_records == 0;
 }
+
+int ilda_is_blanking(uint8_t status) { return (status & 0x40) != 0; }
+
+int ilda_is_last_point(uint8_t status) { return (status & 0x80) != 0; }
