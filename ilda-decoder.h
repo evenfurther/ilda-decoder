@@ -1,8 +1,15 @@
 #ifndef ILDA_DECODER_H
 #define ILDA_DECODER_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
+
+// ILDA_OK is 0, ILDA_ERR is 1
+typedef enum {
+  ILDA_OK,
+  ILDA_ERR,
+} ilda_status;
 
 typedef struct {
   int16_t x, y, z;
@@ -50,32 +57,34 @@ typedef struct {
 // the non-strict mode is more lax with the input.
 void ilda_init(ilda_state_t *ilda,
                ssize_t (*read)(void *opaque, void *buffer, size_t len),
-               void *opaque, int strict_mode);
+               void *opaque, bool strict_mode);
 
 // Read the next header. Return a pointer to the read-only
 // header, or NULL if there was an error. In case of error,
 // an error message can be found in ilda->error.
 const ilda_header_t *ilda_read_next_header(ilda_state_t *ilda);
 
-// Return 1 if the given header denotes a palette, 0 otherwise.
-int ilda_is_palette(const ilda_header_t *header);
+// Return true if the given header denotes a palette, 0 otherwise.
+bool ilda_is_palette(const ilda_header_t *header);
 
-// Return 1 if we have reached the end of the file.
-int ilda_is_end_of_file(const ilda_header_t *header);
+// Return true if we have reached the end of the file.
+bool ilda_is_end_of_file(const ilda_header_t *header);
 
-// Read the palette, return non-zero if there was an error,
+// Read the palette, return ILDA_ERROR if there was an error,
 // with an error message in ilda->error.
-int ilda_read_palette(ilda_state_t *ilda);
+ilda_status ilda_read_palette(ilda_state_t *ilda);
 
 // Read the records. The buffer shall be large enough to contain the
-// right number of records. Return non-zero if there was an error,
+// right number of records. Return ILDA_ERROR if there was an error,
 // with an error message in ilda->error. len is in bytes.
-int ilda_read_records(ilda_state_t *ilda, ilda_point_t *points, size_t len);
+ilda_status ilda_read_records(ilda_state_t *ilda, ilda_point_t *points,
+                              size_t len);
 
-// Return 1 if the status represents blanking (laser off), 0 otherwise.
-int ilda_is_blanking(uint8_t status);
+// Return true if the status represents blanking (laser off), 0 otherwise.
+bool ilda_is_blanking(uint8_t status);
 
-// Return 1 if the status represents the last point of the image, 0 otherwise.
-int ilda_is_last_point(uint8_t status);
+// Return true if the status represents the last point of the image, 0
+// otherwise.
+bool ilda_is_last_point(uint8_t status);
 
 #endif // ILDA_DECODER_H
