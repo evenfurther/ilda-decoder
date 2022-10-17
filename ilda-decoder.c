@@ -21,7 +21,7 @@ static const ilda_color_t default_color_palette[64] = {
     {255, 128, 128}, {255, 96, 96},   {255, 64, 64},   {255, 32, 32}};
 
 void ilda_init(ilda_state_t *ilda, ssize_t (*read)(void *, void *, size_t),
-               void *opaque, int strict_mode) {
+               void *opaque, bool strict_mode) {
   memset(ilda, 0, sizeof *ilda);
   ilda->provider.read = read;
   ilda->provider.opaque = opaque;
@@ -98,42 +98,43 @@ const ilda_header_t *ilda_read_next_header(ilda_state_t *ilda) {
   return &ilda->current_header;
 }
 
-int ilda_is_palette(const ilda_header_t *header) {
+bool ilda_is_palette(const ilda_header_t *header) {
   return header->format_code == 2;
 }
 
-int ilda_read_palette(ilda_state_t *ilda) {
+ilda_status ilda_read_palette(ilda_state_t *ilda) {
   static uint8_t buffer[256 * 3];
   if (ilda->error) {
-    return 1;
+    return ILDA_ERR;
   }
   if (!ilda_is_palette(&ilda->current_header)) {
     ilda->error = "cannot read palette from a non-palette section";
-    return 1;
+    return ILDA_ERR;
   }
   const uint16_t nor = ilda->current_header.number_of_records;
   ilda->error = replenish(&ilda->provider, buffer, nor * 3);
   if (ilda->error)
-    return 1;
+    return ILDA_ERR;
   for (size_t i = 0; i < nor; i++) {
     ilda->palette[i].r = buffer[3 * i];
     ilda->palette[i].g = buffer[3 * i + 1];
     ilda->palette[i].b = buffer[3 * i + 2];
   }
-  return 0;
+  return ILDA_OK;
 }
 
-int ilda_read_records(ilda_state_t *ilda, ilda_point_t *points, size_t len) {
+ilda_status ilda_read_records(ilda_state_t *ilda, ilda_point_t *points,
+                              size_t len) {
   if (ilda->error)
-    return 1;
+    return ILDA_ERR;
   if (ilda_is_palette(&ilda->current_header)) {
     ilda->error = "cannot read records from a palette section";
-    return 1;
+    return ILDA_ERR;
   }
   const uint16_t nor = ilda->current_header.number_of_records;
   if (len < nor * sizeof(ilda_point_t)) {
     ilda->error = "too small a buffer to decode records";
-    return 1;
+    return ILDA_ERR;
   }
   const uint8_t format_code = ilda->current_header.format_code;
   static const size_t records_size[] = {8, 6, 0, 0, 10, 8};
@@ -142,7 +143,7 @@ int ilda_read_records(ilda_state_t *ilda, ilda_point_t *points, size_t len) {
     static uint8_t buffer[10];
     ilda->error = replenish(&ilda->provider, buffer, record_size);
     if (ilda->error)
-      return 1;
+      return ILDA_ERR;
     points[i].pos.x = (buffer[0] << 8) | buffer[1];
     points[i].pos.y = (buffer[2] << 8) | buffer[3];
     switch (format_code) {
@@ -172,13 +173,13 @@ int ilda_read_records(ilda_state_t *ilda, ilda_point_t *points, size_t len) {
       break;
     }
   }
-  return 0;
+  return ILDA_OK;
 }
 
-int ilda_is_end_of_file(const ilda_header_t *header) {
+bool ilda_is_end_of_file(const ilda_header_t *header) {
   return !ilda_is_palette(header) && header->number_of_records == 0;
 }
 
-int ilda_is_blanking(uint8_t status) { return (status & 0x40) != 0; }
+bool ilda_is_blanking(uint8_t status) { return (status & 0x40) != 0; }
 
-int ilda_is_last_point(uint8_t status) { return (status & 0x80) != 0; }
+bool ilda_is_last_point(uint8_t status) { return (status & 0x80) != 0; }
