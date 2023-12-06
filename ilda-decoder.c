@@ -35,9 +35,9 @@ static const char *replenish(ilda_provider_t *provider, uint8_t *buffer,
   while (missing) {
     ssize_t bytes = provider->read(provider->opaque, buffer, missing);
     if (bytes == 0)
-      return "end-of-file while replenishing ";
+      return "end-of-file while replenishing";
     if (bytes < 0)
-      return "error while replenishing ";
+      return "error while replenishing";
     if (bytes > (ssize_t)missing)
       return "too many bytes read, possible data corruption";
     missing -= bytes;
