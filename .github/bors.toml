@@ -1,4 +1,0 @@
-status = [
-  "Check formatting", "Test suite (gcc)", "Test suite (clang)"
-]
-delete_merged_branches = true
